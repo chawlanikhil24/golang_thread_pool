@@ -86,6 +86,7 @@ func (tp *ThreadPool) checkAdmissionControl() bool {
 func (tp *ThreadPool) pop() AsyncProgInterface {
 
 	tp.mutex.Lock()
+	defer tp.mutex.Unlock()  // until this pop operation reaches the termination point, we have maintained the lock on queue
 	size := len(tp.waitQueue)
 	if size > 0 {
 		item := tp.waitQueue[size-1]
@@ -98,8 +99,6 @@ func (tp *ThreadPool) pop() AsyncProgInterface {
 			tp.signalChan <- true
 			tp.needSignal = false
 		}
-
-		tp.mutex.Unlock() // until this pop operation reaches the termination point, we have maintained the lock on queue
 		return item
 	}
 	return nil
